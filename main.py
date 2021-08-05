@@ -44,7 +44,6 @@ async def getSummonerInfo(ctx=SlashContext, summoners_name=None):
     ranked_flex_tier, ranked_flex_league_point, ranked_flex_wins, ranked_flex_losses, ranked_flex_winratio = init_tier()
 
     tiers_type = get_tiers_type()
-    max_tiers = ''
 
     for ranked_type in range(len(summoner['tier_info'])):
         if summoner['tier_info'][ranked_type]['queueType'] == 'RANKED_SOLO_5x5':
@@ -54,20 +53,20 @@ async def getSummonerInfo(ctx=SlashContext, summoners_name=None):
     
     if len(summoner['tier_info']) == 2:
         if tiers_type.index(summoner['tier_info'][0]['tier']) > tiers_type.index(summoner['tier_info'][0]['tier']):
-            get_max_tier(summoner, 0, max_tiers, tiers_type)
+            max_tiers = get_max_tier(summoner, 0, tiers_type)
         else:
-            get_max_tier(summoner, 1, max_tiers, tiers_type)
+            max_tiers = get_max_tier(summoner, 1, tiers_type)
     elif len(summoner['tier_info']) == 1:
-        get_max_tier(summoner, 0, max_tiers, tiers_type)
+        max_tiers = get_max_tier(summoner, 0, tiers_type)
     else:
         max_tiers = 'default'       
+
+    embed_description_ranked_solo_tier, embed_description_ranked_solo_winratio, embed_description_ranked_flex_tier, embed_description_ranked_flex_winratio = init_tier_embed()
 
     if ranked_solo_wins > 0 and ranked_solo_losses > 0: 
         embed_description_ranked_solo_tier, embed_description_ranked_solo_winratio = get_winratio(ranked_solo_wins, ranked_solo_losses, ranked_solo_tier, ranked_solo_league_point)
     if ranked_flex_wins > 0 and ranked_flex_losses > 0: 
         embed_description_ranked_flex_tier, embed_description_ranked_flex_winratio = get_winratio(ranked_flex_wins, ranked_flex_losses, ranked_flex_tier, ranked_flex_league_point)
-
-    embed_description_ranked_solo_tier, embed_description_ranked_solo_winratio, embed_description_ranked_flex_tier, embed_description_ranked_flex_winratio = init_tier_embed()
 
     embed_title = summoner_name + ' (Level ' + summoner_level + ')'
     embed_description = ''
