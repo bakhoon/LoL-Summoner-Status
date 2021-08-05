@@ -12,6 +12,7 @@ load_dotenv()
 bot = commands.Bot(command_prefix = '.')
 slash = SlashCommand(bot, sync_commands=True)
 
+
 @bot.event
 async def on_ready():
     print('We have logged in as {0.user}'.format(bot))
