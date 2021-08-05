@@ -5,13 +5,12 @@ import os
 
 load_dotenv()
 
-lol_watcher = LolWatcher(os.getenv('LOL_WATCHER'))
-
-summoner_ID = 'liveevil'
-region = 'na1'
-region_v5 = 'AMERICAS'
-
 def getSummonerIdentification(summoner_ID):
+
+    lol_watcher = LolWatcher(os.getenv('LOL_WATCHER'))
+    region = 'na1'
+    region_v5 = 'AMERICAS'
+
     summoner = {}
     champion_list = {}
 
@@ -44,5 +43,6 @@ def getSummonerIdentification(summoner_ID):
 
 def recentPlayTime(key):
     return key['lastPlayTime']
+
 
 

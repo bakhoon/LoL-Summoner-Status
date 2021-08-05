@@ -5,6 +5,9 @@ from discord_slash import SlashCommand, SlashContext
 from discord_slash.utils.manage_commands import create_option
 from summonerInfo import getSummonerIdentification
 from dotenv import load_dotenv
+from champion import get_champion_info_embed
+from ranked import init_tier, init_tier_embed, get_tiers_type, get_tier_info, get_max_tier, get_winratio
+from summoner import get_summoner_info
 import os
 
 load_dotenv()
@@ -35,82 +38,36 @@ async def getSummonerInfo(ctx=SlashContext, summoners_name=None):
 
     summoner = getSummonerIdentification(summoners_name)
     
-    summoner_name:str = summoner['summoner_info']['name']
-    summoner_level:str = str(summoner['summoner_info']['summonerLevel'])
-    summoner_url:str = 'https://na.op.gg/summoner/userName=' + summoner_name.replace(" ", "")
+    summoner_name, summoner_level, summoner_url = get_summoner_info(summoner)
 
-    ranked_solo_tier:str = ''
-    ranked_solo_league_point:int = 0
-    ranked_solo_wins:int = 0
-    ranked_solo_losses:int = 0
+    ranked_solo_tier, ranked_solo_league_point, ranked_solo_wins, ranked_solo_losses, ranked_solo_winratio = init_tier()
+    ranked_flex_tier, ranked_flex_league_point, ranked_flex_wins, ranked_flex_losses, ranked_flex_winratio = init_tier()
 
-    ranked_flex_tier:str = ''
-    ranked_flex_league_point:int = 0
-    ranked_flex_wins:int = 0
-    ranked_flex_losses:int = 0
-
-    ranked_solo_winratio:float = 0.0
-    ranked_flex_winratio:float = 0.0
-
-    tiers_type = ['CHALLENGER', 'GRANDMASTER', 'MASTER', 'DIAMOND', 'PLATINUM', 'GOLD', 'SILVER', 'BRONZE', 'IRON']
+    tiers_type = get_tiers_type()
     max_tiers = ''
 
     for ranked_type in range(len(summoner['tier_info'])):
         if summoner['tier_info'][ranked_type]['queueType'] == 'RANKED_SOLO_5x5':
-            ranked_solo_tier = summoner['tier_info'][ranked_type]['tier'] + ' ' + summoner['tier_info'][ranked_type]['rank']
-            ranked_solo_league_point = summoner['tier_info'][ranked_type]['leaguePoints']
-            ranked_solo_wins = summoner['tier_info'][ranked_type]['wins']
-            ranked_solo_losses = summoner['tier_info'][ranked_type]['losses']
+            ranked_solo_tier, ranked_solo_league_point, ranked_solo_wins, ranked_solo_losses = get_tier_info(summoner, ranked_type)
         elif summoner['tier_info'][ranked_type]['queueType'] == 'RANKED_FLEX_SR':
-            ranked_flex_tier = summoner['tier_info'][ranked_type]['tier'] + ' ' + summoner['tier_info'][ranked_type]['rank']
-            ranked_flex_league_point = summoner['tier_info'][ranked_type]['leaguePoints']
-            ranked_flex_wins = summoner['tier_info'][ranked_type]['wins']
-            ranked_flex_losses = summoner['tier_info'][ranked_type]['losses']
+            ranked_flex_tier, ranked_flex_league_point, ranked_flex_wins, ranked_flex_losses = get_tier_info(summoner, ranked_type)
     
     if len(summoner['tier_info']) == 2:
         if tiers_type.index(summoner['tier_info'][0]['tier']) > tiers_type.index(summoner['tier_info'][0]['tier']):
-            if summoner['tier_info'][ranked_type]['rank'] == "I":
-                max_tiers = tiers_type[tiers_type.index(summoner['tier_info'][0]['tier'])] + '_1'
-            elif summoner['tier_info'][ranked_type]['rank'] == "II":
-                max_tiers = tiers_type[tiers_type.index(summoner['tier_info'][0]['tier'])] + '_2'
-            elif summoner['tier_info'][ranked_type]['rank'] == "III":
-                max_tiers = tiers_type[tiers_type.index(summoner['tier_info'][0]['tier'])] + '_3'
-            elif summoner['tier_info'][ranked_type]['rank'] == "IV":
-                max_tiers = tiers_type[tiers_type.index(summoner['tier_info'][0]['tier'])] + '_4'
+            get_max_tier(summoner, 0, max_tiers, tiers_type)
         else:
-            if summoner['tier_info'][ranked_type]['rank'] == "I":
-                max_tiers = tiers_type[tiers_type.index(summoner['tier_info'][1]['tier'])] + '_1'
-            elif summoner['tier_info'][ranked_type]['rank'] == "II":
-                max_tiers = tiers_type[tiers_type.index(summoner['tier_info'][1]['tier'])] + '_2'
-            elif summoner['tier_info'][ranked_type]['rank'] == "III":
-                max_tiers = tiers_type[tiers_type.index(summoner['tier_info'][1]['tier'])] + '_3'
-            elif summoner['tier_info'][ranked_type]['rank'] == "IV":
-                max_tiers = tiers_type[tiers_type.index(summoner['tier_info'][1]['tier'])] + '_4'
+            get_max_tier(summoner, 1, max_tiers, tiers_type)
     elif len(summoner['tier_info']) == 1:
-        if summoner['tier_info'][ranked_type]['rank'] == "I":
-            max_tiers = tiers_type[tiers_type.index(summoner['tier_info'][0]['tier'])] + '_1'
-        elif summoner['tier_info'][ranked_type]['rank'] == "II":
-            max_tiers = tiers_type[tiers_type.index(summoner['tier_info'][0]['tier'])] + '_2'
-        elif summoner['tier_info'][ranked_type]['rank'] == "III":
-            max_tiers = tiers_type[tiers_type.index(summoner['tier_info'][0]['tier'])] + '_3'
-        elif summoner['tier_info'][ranked_type]['rank'] == "IV":
-            max_tiers = tiers_type[tiers_type.index(summoner['tier_info'][0]['tier'])] + '_4'
+        get_max_tier(summoner, 0, max_tiers, tiers_type)
     else:
         max_tiers = 'default'       
 
-    embed_description_ranked_solo_tier:str = ''
-    embed_description_ranked_solo_winratio:str = ''
-    embed_description_ranked_flex_tier:str = ''
-    embed_description_ranked_flex_winratio:str = ''
-
     if ranked_solo_wins > 0 and ranked_solo_losses > 0: 
-        ranked_solo_winratio = "%.2f" % (float(ranked_solo_wins)*100/(float(ranked_solo_wins)+float(ranked_solo_losses)))
-        embed_description_ranked_solo_tier = 'Ranked Solo Tier: ' + ranked_solo_tier + ' ' + str(ranked_solo_league_point) + ' LP'
-        embed_description_ranked_solo_winratio = 'Ranked Solo Win Ratio: ' + str(ranked_solo_winratio) + '% (' + str(ranked_solo_wins) + 'W - ' + str(ranked_solo_losses) + 'L)'
+        embed_description_ranked_solo_tier, embed_description_ranked_solo_winratio = get_winratio(ranked_solo_wins, ranked_solo_losses, ranked_solo_tier, ranked_solo_league_point)
     if ranked_flex_wins > 0 and ranked_flex_losses > 0: 
-        ranked_flex_winratio = "%.2f" % (float(ranked_flex_wins)*100/(float(ranked_flex_wins)+float(ranked_flex_losses)))
-        embed_description_ranked_flex_tier = 'Ranked Flex Tier: ' + ranked_flex_tier + ' ' + str(ranked_flex_league_point) + ' LP'
-        embed_description_ranked_flex_winratio = 'Ranked Flex Win Ratio: ' + str(ranked_flex_winratio) + '% (' + str(ranked_flex_wins) + 'W - ' + str(ranked_flex_losses) + 'L)'
+        embed_description_ranked_flex_tier, embed_description_ranked_flex_winratio = get_winratio(ranked_flex_wins, ranked_flex_losses, ranked_flex_tier, ranked_flex_league_point)
+
+    embed_description_ranked_solo_tier, embed_description_ranked_solo_winratio, embed_description_ranked_flex_tier, embed_description_ranked_flex_winratio = init_tier_embed()
 
     embed_title = summoner_name + ' (Level ' + summoner_level + ')'
     embed_description = ''
@@ -128,28 +85,11 @@ async def getSummonerInfo(ctx=SlashContext, summoners_name=None):
     
     embeds = [embed]
 
-    for champion in summoner['champion_mastery_info']:
-        
-        last_play_time = datetime.fromtimestamp(champion['lastPlayTime']/1000)
-        champion_description = "Champion Points: " + str(champion['championPoints']) + '\r\n' + "Champion Last Played: " + str(last_play_time)
-        champion_name = summoner['champion_list'][str(champion['championId'])] + ' (Level ' + str(champion['championLevel']) + ')'
-        champion_url = "https://na.op.gg/champion/" + summoner['champion_list'][str(champion['championId'])] + "/"
-        champion_icon_url = 'https://opgg-static.akamaized.net/images/lol/champion/' + summoner['champion_list'][str(champion['championId'])] + '.png?image=c_scale,q_auto,w_40'
-        champion_embed = discord.Embed(description=champion_description, colour=discord.Colour.gold())
-        champion_embed.set_author(name=champion_name, url=champion_url, icon_url=champion_icon_url)
-        embeds.append(champion_embed)
-    
-    for champion in summoner['champion_recent_info']:
-        
-        last_play_time = datetime.fromtimestamp(champion['lastPlayTime']/1000)
-        champion_description = "Champion Points: " + str(champion['championPoints']) + '\r\n' + "Champion Last Played: " + str(last_play_time)
-        champion_name = summoner['champion_list'][str(champion['championId'])] + ' (Level ' + str(champion['championLevel']) + ')'
-        champion_url = "https://na.op.gg/champion/" + summoner['champion_list'][str(champion['championId'])] + "/"
-        champion_icon_url = 'https://opgg-static.akamaized.net/images/lol/champion/' + summoner['champion_list'][str(champion['championId'])] + '.png?image=c_scale,q_auto,w_40'
-        champion_embed = discord.Embed(description=champion_description, colour=discord.Colour.dark_orange())
-        champion_embed.set_author(name=champion_name, url=champion_url, icon_url=champion_icon_url)
-        embeds.append(champion_embed)
+    for champion_type in ['champion_mastery_info','champion_recent_info']:
+        for champion in summoner[champion_type]:
+            embed = get_champion_info_embed(summoner, champion, embeds, champion_type)
 
     await ctx.send(embeds=embeds)
 
 bot.run(os.getenv('BOT'))
+
