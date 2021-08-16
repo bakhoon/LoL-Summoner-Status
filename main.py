@@ -1,14 +1,17 @@
 import discord
+import os
+
 from datetime import datetime
 from discord.ext import commands
 from discord_slash import SlashCommand, SlashContext
 from discord_slash.utils.manage_commands import create_option
-from summonerInfo import getSummonerIdentification
 from dotenv import load_dotenv
-from champion import get_champion_info_embed
-from ranked import init_tier, init_tier_embed, get_tiers_type, get_tier_info, get_max_tier, get_winratio
-from summoner import get_summoner_info
-import os
+
+from src.summonerInfo import getSummonerIdentification
+from src.champion import get_champion_info_embed
+from src.ranked import init_tier, init_tier_embed, get_tiers_type, get_tier_info, get_max_tier, get_winratio
+from src.summoner import get_summoner_info
+
 
 load_dotenv()
 
