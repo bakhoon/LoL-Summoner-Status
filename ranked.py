@@ -27,7 +27,10 @@ def get_tier_info(summoner, ranked_type) -> list:
     
     return [ranked_tier, ranked_league_point, ranked_wins, ranked_losses]
 
-def get_max_tier(summoner, ranked_type, max_tiers, tiers_type) -> str:
+def get_max_tier(summoner, ranked_type, max_tiers) -> str:
+
+    tiers_type = ['CHALLENGER', 'GRANDMASTER', 'MASTER', 'DIAMOND', 'PLATINUM', 'GOLD', 'SILVER', 'BRONZE', 'IRON']
+
     if summoner['tier_info'][ranked_type]['rank'] == "I":
         max_tiers = tiers_type[tiers_type.index(summoner['tier_info'][ranked_type]['tier'])] + '_1'
     elif summoner['tier_info'][ranked_type]['rank'] == "II":
