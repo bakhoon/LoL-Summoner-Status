@@ -1,13 +1,9 @@
-
 from riotwatcher import LolWatcher
-from dotenv import load_dotenv
-import os
-
-load_dotenv()
+from decouple import config
 
 def getSummonerIdentification(summoner_ID):
 
-    lol_watcher = LolWatcher(os.getenv('LOL_WATCHER'))
+    lol_watcher = LolWatcher(config('LOL_WATCHER'))
     region = 'na1'
     region_v5 = 'AMERICAS'
 
