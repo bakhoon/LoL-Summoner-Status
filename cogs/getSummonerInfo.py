@@ -6,12 +6,12 @@ from src.champion import get_champion_info_embed
 from src.ranked import init_tier, init_tier_embed, get_tiers_type, get_tier_info, get_max_tier, get_winratio
 from src.summoner import get_summoner_info
 
-import os
+from decouple import config
 
 class Summoner(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.guild_ids = int(os.getenv('GUILD_ID'))
+        self.guild_ids = int(config('GUILD_ID'))
     
     @commands.Cog.listener()
     async def on_message(self, message):
